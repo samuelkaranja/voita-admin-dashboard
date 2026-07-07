@@ -98,6 +98,11 @@ export interface TowingQuickService {
   iconKey: string;
 }
 
+export interface ScoutTag {
+  id: string;
+  label: string;
+}
+
 export interface Scout {
   id: string;
   name: string;
@@ -112,7 +117,7 @@ export interface Scout {
   missionsCompleted: number;
   verified: boolean;
   dateAdded: string;
-  tags: string[];
+  tags: ScoutTag[];
   skills: ScoutSkill[];
   reviews: ScoutReview[];
 }

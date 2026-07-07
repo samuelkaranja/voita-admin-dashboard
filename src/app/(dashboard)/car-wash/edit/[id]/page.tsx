@@ -6,7 +6,6 @@ import PageHeader from "@/components/layout/PageHeader";
 import Card from "@/components/ui/Card";
 import EditCarWashForm from "@/components/carwash/EditCarWashForm";
 import WashServicesCard from "@/components/carwash/WashServicesCard";
-import { getCarWashById } from "@/lib/mock-carwash";
 import { CarWashService } from "@/types";
 
 export default function EditCarWashPage({
@@ -15,10 +14,9 @@ export default function EditCarWashPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const carWash = getCarWashById(id);
-  if (!carWash) notFound();
+  //if (!carWash) notFound();
 
-  const [services, setServices] = useState<CarWashService[]>(carWash.services);
+  //const [services, setServices] = useState<CarWashService[]>(carWash.services);
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,11 +29,11 @@ export default function EditCarWashPage({
       />
 
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
-        <Card className="p-5 sm:p-8">
+        {/* <Card className="p-5 sm:p-8">
           <EditCarWashForm carWash={carWash} />
         </Card>
 
-        <WashServicesCard services={services} onChange={setServices} />
+        <WashServicesCard services={services} onChange={setServices} /> */}
       </div>
     </div>
   );

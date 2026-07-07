@@ -25,8 +25,8 @@ export default function EditTowingForm({
   const [description, setDescription] = useState(provider.description);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [phoneNumber, setPhoneNumber] = useState(provider.phoneNumber);
-  const [etaMin, setEtaMin] = useState(provider.etaMinMins.toString());
-  const [etaMax, setEtaMax] = useState(provider.etaMaxMins.toString());
+  const [etaMin, setEtaMin] = useState(provider.etaMinMins?.toString() ?? "");
+  const [etaMax, setEtaMax] = useState(provider.etaMaxMins?.toString() ?? "");
   const [vehicleType, setVehicleType] = useState(provider.vehicleType);
   const [availability, setAvailability] = useState(provider.availability);
   const [tags, setTags] = useState<string[]>(provider.tags);

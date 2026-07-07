@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
-import { Scout, ScoutSkill, ScoutReview, CtaType } from "@/types";
+import { Scout, ScoutSkill, ScoutReview, CtaType, ScoutTag } from "@/types";
 
 interface BackendScoutListItem {
   id: string;
@@ -48,6 +48,12 @@ interface BackendScoutDetail {
   reviews: BackendScoutReview[];
 }
 
+interface BackendScoutTag {
+  id: string;
+  scout_id: string;
+  label: string;
+}
+
 const CTA_MAP: Record<"book" | "request" | "schedule", CtaType> = {
   book: "Book Scout",
   request: "Quick Request",
@@ -61,6 +67,13 @@ const CTA_MAP_REVERSE: Record<CtaType, "book" | "request" | "schedule"> = {
 
 export function ctaTypeToBackend(cta: CtaType) {
   return CTA_MAP_REVERSE[cta];
+}
+
+function adaptTags(tags: string[]): ScoutTag[] {
+  // NOTE: the backend's list/detail responses only return tag labels, not ids.
+  // Using the label as a stand-in id for now so the UI has something stable to key on —
+  // this means delete-by-id won't work correctly until the backend exposes real tag ids here.
+  return tags.map((label) => ({ id: label, label }));
 }
 
 function adaptSkill(s: BackendScoutSkill): ScoutSkill {
@@ -97,7 +110,7 @@ function adaptListItem(item: BackendScoutListItem): Scout {
     missionsCompleted: item.missions_completed,
     verified: false,
     dateAdded: item.created_at,
-    tags: item.tags,
+    tags: adaptTags(item.tags),
     skills: [],
     reviews: [],
   };
@@ -109,7 +122,7 @@ function adaptDetail(d: BackendScoutDetail): Scout {
     name: d.name,
     avatarUrl: d.avatar_url ?? "",
     role: d.role,
-    category: "Auditors", // still not returned by the backend — see open items
+    category: "Auditors",
     bio: d.bio ?? "",
     location: d.location ?? "",
     ctaType: CTA_MAP[d.cta_type],
@@ -118,7 +131,7 @@ function adaptDetail(d: BackendScoutDetail): Scout {
     missionsCompleted: d.missions_completed,
     verified: d.is_verified,
     dateAdded: d.created_at,
-    tags: d.tags,
+    tags: adaptTags(d.tags),
     skills: d.skills.map(adaptSkill),
     reviews: d.reviews.map(adaptReview),
   };
@@ -195,9 +208,12 @@ export async function deleteScoutSkill(
 export async function addScoutTag(
   scoutId: string,
   label: string,
-): Promise<string> {
-  await apiClient.post(`/scouts/admin/scouts/${scoutId}/tags`, { label });
-  return label;
+): Promise<ScoutTag> {
+  const { data } = await apiClient.post<BackendScoutTag>(
+    `/scouts/admin/scouts/${scoutId}/tags`,
+    { label },
+  );
+  return { id: data.id, label: data.label };
 }
 
 export async function deleteScoutTag(

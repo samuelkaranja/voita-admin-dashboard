@@ -77,7 +77,7 @@ export const updateMechanicThunk = createAsyncThunk(
       photoFile,
     }: {
       id: string;
-      payload: api.UpdateMechanicPayload;
+      payload: Partial<api.CreateMechanicPayload>;
       photoFile: File | null;
     },
     { rejectWithValue },
