@@ -71,8 +71,8 @@ export default function MechanicsTable({
                       <Image
                         src={m.avatarUrl!}
                         alt={m.name}
-                        width={32}
-                        height={32}
+                        width={34}
+                        height={34}
                         className="rounded-full object-cover"
                         unoptimized
                       />

@@ -10,32 +10,55 @@ import TagInput from "@/components/forms/TagInput";
 import ImageUploadInput from "@/components/forms/ImageUploadInput";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import FormActions from "@/components/forms/FormActions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateMechanicThunk } from "@/store/slices/mechanicsSlice";
 
 export default function EditMechanicForm({ mechanic }: { mechanic: Mechanic }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { mutationStatus, mutationError } = useAppSelector(
+    (state) => state.mechanics,
+  );
+
   const [name, setName] = useState(mechanic.name);
   const [address, setAddress] = useState(mechanic.address);
-  const [primarySpecialty, setPrimarySpecialty] = useState(
-    mechanic.primarySpecialty,
-  );
-  const [specialties, setSpecialties] = useState<string[]>(
-    mechanic.specialties,
-  );
+  const [specialty, setSpecialty] = useState(mechanic.primarySpecialty);
   const [description, setDescription] = useState(mechanic.description);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [rating, setRating] = useState(mechanic.rating.toString());
   const [verified, setVerified] = useState(mechanic.verified);
   const [availableToday, setAvailableToday] = useState(mechanic.availableToday);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: if imageFile is set, upload to Cloudinary first, then PATCH
-    // voita-backend.fly.dev/api/v1/mechanics/{mechanic.id} with the resulting URL + form fields
-    router.push("/mechanics");
+    const result = await dispatch(
+      updateMechanicThunk({
+        id: mechanic.id,
+        payload: {
+          name,
+          address,
+          specialty,
+          description,
+          rating: rating ? Number(rating) : undefined,
+          verified,
+          available_today: availableToday,
+        },
+        photoFile,
+      }),
+    );
+    if (updateMechanicThunk.fulfilled.match(result)) {
+      router.push("/mechanics");
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {mutationStatus === "failed" && (
+        <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+          {mutationError}
+        </p>
+      )}
+
       <FormField label="Name">
         <TextInput
           value={name}
@@ -48,23 +71,13 @@ export default function EditMechanicForm({ mechanic }: { mechanic: Mechanic }) {
         <TextInput
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          required
         />
       </FormField>
 
       <FormField label="Primary Specialty">
         <TextInput
-          value={primarySpecialty}
-          onChange={(e) => setPrimarySpecialty(e.target.value)}
-          required
-        />
-      </FormField>
-
-      <FormField label="Specialties / Tags">
-        <TagInput
-          tags={specialties}
-          onChange={setSpecialties}
-          placeholder="Add a specialty and press Enter"
+          value={specialty}
+          onChange={(e) => setSpecialty(e.target.value)}
         />
       </FormField>
 
@@ -79,7 +92,7 @@ export default function EditMechanicForm({ mechanic }: { mechanic: Mechanic }) {
       <FormField label="Photo">
         <ImageUploadInput
           initialUrl={mechanic.avatarUrl}
-          onFileSelect={setImageFile}
+          onFileSelect={setPhotoFile}
         />
       </FormField>
 
@@ -96,7 +109,6 @@ export default function EditMechanicForm({ mechanic }: { mechanic: Mechanic }) {
             />
           </FormField>
         </div>
-
         <div className="flex items-center gap-6 pb-0.5 sm:pb-2.5">
           <ToggleSwitch
             label="Verified"
@@ -114,7 +126,9 @@ export default function EditMechanicForm({ mechanic }: { mechanic: Mechanic }) {
       <div className="pt-2">
         <FormActions
           onCancel={() => router.push("/mechanics")}
-          saveLabel="Update Mechanic"
+          saveLabel={
+            mutationStatus === "loading" ? "Saving..." : "Update Mechanic"
+          }
         />
       </div>
     </form>

@@ -3,21 +3,34 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import Card from "@/components/ui/Card";
+import { ScoutTag } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  addScoutTagThunk,
+  deleteScoutTagThunk,
+} from "@/store/slices/scoutsSlice";
 
 interface TagsCardProps {
-  tags: string[];
-  onChange: (tags: string[]) => void;
+  scoutId: string;
+  tags: ScoutTag[];
 }
 
-export default function TagsCard({ tags, onChange }: TagsCardProps) {
+export default function TagsCard({ scoutId, tags }: TagsCardProps) {
+  const dispatch = useAppDispatch();
   const [inputValue, setInputValue] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleAdd() {
+  async function handleAdd() {
     const trimmed = inputValue.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      onChange([...tags, trimmed]);
-      setInputValue("");
-    }
+    if (!trimmed || tags.some((t) => t.label === trimmed)) return;
+    setSubmitting(true);
+    await dispatch(addScoutTagThunk({ scoutId, label: trimmed }));
+    setSubmitting(false);
+    setInputValue("");
+  }
+
+  function handleDelete(tagId: string) {
+    dispatch(deleteScoutTagThunk({ scoutId, tagId }));
   }
 
   return (
@@ -34,13 +47,13 @@ export default function TagsCard({ tags, onChange }: TagsCardProps) {
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <span
-                key={tag}
+                key={tag.id}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-voita-accent-dim text-voita-accent"
               >
-                {tag}
+                {tag.label}
                 <button
                   type="button"
-                  onClick={() => onChange(tags.filter((t) => t !== tag))}
+                  onClick={() => handleDelete(tag.id)}
                   className="hover:opacity-70"
                 >
                   <X size={12} />
@@ -55,16 +68,21 @@ export default function TagsCard({ tags, onChange }: TagsCardProps) {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" && (e.preventDefault(), handleAdd())
-            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleAdd();
+              }
+            }}
             placeholder="Add a tag..."
-            className="flex-1 bg-voita-bg border border-voita-border rounded-lg px-4 py-2.5 text-sm text-voita-text placeholder-voita-text-muted focus:outline-none focus:ring-1 focus:ring-voita-accent"
+            disabled={submitting}
+            className="flex-1 bg-voita-bg border border-voita-border rounded-lg px-4 py-2.5 text-sm text-voita-text placeholder-voita-text-muted focus:outline-none focus:ring-1 focus:ring-voita-accent disabled:opacity-50"
           />
           <button
             type="button"
             onClick={handleAdd}
-            className="shrink-0 w-10 h-10 rounded-lg bg-voita-accent text-voita-bg flex items-center justify-center hover:opacity-90 transition-opacity"
+            disabled={submitting}
+            className="shrink-0 w-10 h-10 rounded-lg bg-voita-accent text-voita-bg flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             <Plus size={16} strokeWidth={2.5} />
           </button>

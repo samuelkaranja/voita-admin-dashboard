@@ -6,19 +6,27 @@ import ListSectionHeader from "@/components/ui/ListSectionHeader";
 import QuickServiceListItem from "@/components/towing/QuickServiceListItem";
 import TextInput from "@/components/forms/TextInput";
 import { TowingQuickService } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  addTowingQuickServiceThunk,
+  deleteTowingQuickServiceThunk,
+} from "@/store/slices/towingSlice";
+import IconKeySelect from "../forms/IconKeySelect";
 
 interface QuickServicesCardProps {
+  providerId: string;
   services: TowingQuickService[];
-  onChange: (services: TowingQuickService[]) => void;
 }
 
 export default function QuickServicesCard({
+  providerId,
   services,
-  onChange,
 }: QuickServicesCardProps) {
+  const dispatch = useAppDispatch();
   const [isAdding, setIsAdding] = useState(false);
   const [label, setLabel] = useState("");
   const [iconKey, setIconKey] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
     setLabel("");
@@ -26,17 +34,21 @@ export default function QuickServicesCard({
     setIsAdding(false);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!label.trim()) return;
-    onChange([
-      ...services,
-      {
-        id: crypto.randomUUID(),
-        label: label.trim(),
-        iconKey: iconKey.trim() || "wrench",
-      },
-    ]);
+    setSubmitting(true);
+    await dispatch(
+      addTowingQuickServiceThunk({
+        providerId,
+        payload: { label: label.trim(), icon: iconKey.trim() || "wrench" },
+      }),
+    );
+    setSubmitting(false);
     resetForm();
+  }
+
+  function handleDelete(quickServiceId: string) {
+    dispatch(deleteTowingQuickServiceThunk({ providerId, quickServiceId }));
   }
 
   return (
@@ -55,11 +67,7 @@ export default function QuickServicesCard({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Label"
             />
-            <TextInput
-              value={iconKey}
-              onChange={(e) => setIconKey(e.target.value)}
-              placeholder="Icon Key"
-            />
+            <IconKeySelect value={iconKey} onChange={setIconKey} />
           </div>
           <div className="flex items-center justify-end gap-2">
             <button
@@ -72,9 +80,10 @@ export default function QuickServicesCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity"
+              disabled={submitting}
+              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Add
+              {submitting ? "Adding..." : "Add"}
             </button>
           </div>
         </div>
@@ -85,9 +94,7 @@ export default function QuickServicesCard({
           <QuickServiceListItem
             key={service.id}
             service={service}
-            onDelete={() =>
-              onChange(services.filter((s) => s.id !== service.id))
-            }
+            onDelete={() => handleDelete(service.id)}
           />
         ))}
       </div>

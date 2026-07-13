@@ -221,10 +221,17 @@ export async function createInsurancePartner(payload: {
   logo_url?: string;
 }): Promise<InsurancePartner> {
   const { data } = await apiClient.post<BackendInsurancePartner>(
-    "/mechanics/admin/insurance-partners", // fixed — but see note below, this one is worth testing separately
+    "/mechanics/admin/insurance-partners",
     payload,
   );
   return adaptPartner(data);
+}
+
+export async function fetchInsurancePartners(): Promise<InsurancePartner[]> {
+  const { data } = await apiClient.get<BackendInsurancePartner[]>(
+    "/mechanics/admin/insurance-partners",
+  );
+  return data.map(adaptPartner);
 }
 
 export async function addMechanicReview(

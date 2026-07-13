@@ -12,6 +12,7 @@ interface BackendScoutListItem {
   bio: string | null;
   cta_type: "book" | "request" | "schedule";
   accent_color: string;
+  is_verified: boolean;
   created_at: string;
 }
 
@@ -101,14 +102,14 @@ function adaptListItem(item: BackendScoutListItem): Scout {
     name: item.name,
     avatarUrl: item.avatar_url ?? "",
     role: item.role,
-    category: "Auditors", // still not returned by the backend — see open items
+    category: "Auditors",
     bio: item.bio ?? "",
     location: "",
     ctaType: CTA_MAP[item.cta_type],
     accentColor: item.accent_color,
     rating: item.rating,
     missionsCompleted: item.missions_completed,
-    verified: false,
+    verified: item.is_verified,
     dateAdded: item.created_at,
     tags: adaptTags(item.tags),
     skills: [],

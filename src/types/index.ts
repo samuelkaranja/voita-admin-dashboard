@@ -1,3 +1,4 @@
+export type UserRole = "driver" | "admin" | "super_admin";
 export type ServiceType = "Mechanic" | "Car Wash" | "Towing" | "Scout";
 export type VehicleType = "Flatbed" | "Roadside" | "Heavy Duty";
 export type TowingAvailability = "Available" | "Busy";
@@ -10,6 +11,15 @@ export type SpecialtyCategory =
   | "Bodywork"
   | "Transmission"
   | "Suspension";
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  phone: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+}
 
 export interface Mechanic {
   id: string;
@@ -75,6 +85,7 @@ export interface TowingProvider {
   etaMaxMins: number | null;
   availability: TowingAvailability;
   isPartner: boolean;
+  verified: boolean;
   rating: number;
   phoneNumber: string;
   description: string;

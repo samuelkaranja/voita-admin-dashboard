@@ -7,8 +7,7 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Placeholder for when admin auth is implemented on the backend.
-// Once a token exists (e.g. in a cookie or Redux auth slice), attach it here:
+// Attaches the admin JWT to every outgoing request, once logged in.
 apiClient.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined"
@@ -20,8 +19,27 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Handles expired/invalid tokens and insufficient-role responses globally,
+// so individual thunks/components don't each need their own 403 handling.
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 403 && typeof window !== "undefined") {
+      localStorage.removeItem("voita_admin_token");
+      localStorage.removeItem("voita_admin_user");
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 export function extractErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
+    if (error.response?.status === 403) {
+      return "Access denied. Your session may have expired — please sign in again.";
+    }
     return (
       error.response?.data?.detail ?? error.message ?? "Something went wrong"
     );

@@ -1,12 +1,16 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect } from "react";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/layout/PageHeader";
 import Card from "@/components/ui/Card";
 import EditCarWashForm from "@/components/carwash/EditCarWashForm";
 import WashServicesCard from "@/components/carwash/WashServicesCard";
-import { CarWashService } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchCarWashByIdThunk,
+  clearSelectedCarWash,
+} from "@/store/slices/carWashSlice";
 
 export default function EditCarWashPage({
   params,
@@ -14,9 +18,24 @@ export default function EditCarWashPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  //if (!carWash) notFound();
+  const dispatch = useAppDispatch();
+  const { selected: carWash, status } = useAppSelector(
+    (state) => state.carWash,
+  );
 
-  //const [services, setServices] = useState<CarWashService[]>(carWash.services);
+  useEffect(() => {
+    dispatch(fetchCarWashByIdThunk(id));
+    return () => {
+      dispatch(clearSelectedCarWash());
+    };
+  }, [dispatch, id]);
+
+  if (status === "loading" || !carWash) {
+    return <p className="text-voita-text-muted text-sm">Loading provider...</p>;
+  }
+  if (status === "failed") {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,11 +48,11 @@ export default function EditCarWashPage({
       />
 
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
-        {/* <Card className="p-5 sm:p-8">
+        <Card className="p-5 sm:p-8">
           <EditCarWashForm carWash={carWash} />
         </Card>
 
-        <WashServicesCard services={services} onChange={setServices} /> */}
+        <WashServicesCard carWashId={carWash.id} services={carWash.services} />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Scout } from "@/types";
+import { Scout, CtaType } from "@/types";
 import FormField from "@/components/forms/FormField";
 import TextInput from "@/components/forms/TextInput";
 import TextArea from "@/components/forms/TextArea";
@@ -11,33 +11,68 @@ import ImageUploadInput from "@/components/forms/ImageUploadInput";
 import ColorPickerInput from "@/components/forms/ColorPickerInput";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import FormActions from "@/components/forms/FormActions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateScoutThunk } from "@/store/slices/scoutsSlice";
+import { ctaTypeToBackend } from "@/lib/api/scoutsApi";
 
-const CTA_TYPES = ["Book Scout", "Quick Request", "Schedule Valet"];
+const CTA_TYPES: CtaType[] = ["Book Scout", "Quick Request", "Schedule Valet"];
 
 export default function EditScoutForm({ scout }: { scout: Scout }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { mutationStatus, mutationError } = useAppSelector(
+    (state) => state.scouts,
+  );
+
   const [name, setName] = useState(scout.name);
   const [role, setRole] = useState(scout.role);
   const [bio, setBio] = useState(scout.bio);
   const [location, setLocation] = useState(scout.location);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [ctaType, setCtaType] = useState(scout.ctaType);
-  const [accentColor, setAccentColor] = useState(scout.accentColor);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [ctaType, setCtaType] = useState<CtaType>(scout.ctaType);
+  const [accentColor, setAccentColor] = useState(
+    scout.accentColor ?? "#10B981",
+  );
   const [rating, setRating] = useState(scout.rating.toString());
   const [missionsCompleted, setMissionsCompleted] = useState(
     scout.missionsCompleted.toString(),
   );
   const [verified, setVerified] = useState(scout.verified);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: if imageFile is set, upload to Cloudinary first, then PATCH
-    // voita-backend.fly.dev/api/v1/scouts/{scout.id} with the resulting URL + form fields
-    router.push("/scouts");
+    const result = await dispatch(
+      updateScoutThunk({
+        id: scout.id,
+        payload: {
+          name,
+          role,
+          cta_type: ctaTypeToBackend(ctaType),
+          bio,
+          location,
+          accent_color: accentColor,
+          rating: rating ? Number(rating) : undefined,
+          missions_completed: missionsCompleted
+            ? Number(missionsCompleted)
+            : undefined,
+          is_verified: verified,
+        },
+        photoFile,
+      }),
+    );
+    if (updateScoutThunk.fulfilled.match(result)) {
+      router.push("/scouts");
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {mutationStatus === "failed" && (
+        <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+          {mutationError}
+        </p>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FormField label="Name">
           <TextInput
@@ -73,7 +108,7 @@ export default function EditScoutForm({ scout }: { scout: Scout }) {
       <FormField label="Avatar">
         <ImageUploadInput
           initialUrl={scout.avatarUrl}
-          onFileSelect={setImageFile}
+          onFileSelect={setPhotoFile}
         />
       </FormField>
 
@@ -82,7 +117,7 @@ export default function EditScoutForm({ scout }: { scout: Scout }) {
           <Select
             options={CTA_TYPES}
             value={ctaType}
-            onChange={(e) => setCtaType(e.target.value as typeof ctaType)}
+            onChange={(e) => setCtaType(e.target.value as CtaType)}
           />
         </FormField>
         <FormField label="Accent Color">
@@ -115,7 +150,6 @@ export default function EditScoutForm({ scout }: { scout: Scout }) {
             </FormField>
           </div>
         </div>
-
         <div className="pb-0.5 sm:pb-2.5">
           <ToggleSwitch
             label="Verified"
@@ -128,7 +162,9 @@ export default function EditScoutForm({ scout }: { scout: Scout }) {
       <div className="pt-2">
         <FormActions
           onCancel={() => router.push("/scouts")}
-          saveLabel="Update Scout"
+          saveLabel={
+            mutationStatus === "loading" ? "Saving..." : "Update Scout"
+          }
         />
       </div>
     </form>

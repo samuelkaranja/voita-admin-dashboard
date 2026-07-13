@@ -10,6 +10,7 @@ interface MechanicsState {
   error: string | null;
   mutationStatus: "idle" | "loading" | "succeeded" | "failed";
   mutationError: string | null;
+  allInsurancePartners: InsurancePartner[];
 }
 
 const initialState: MechanicsState = {
@@ -19,6 +20,7 @@ const initialState: MechanicsState = {
   error: null,
   mutationStatus: "idle",
   mutationError: null,
+  allInsurancePartners: [],
 };
 
 export const fetchMechanicsThunk = createAsyncThunk(
@@ -156,6 +158,36 @@ export const addInsurancePartnerThunk = createAsyncThunk(
   },
 );
 
+export const assignExistingInsurancePartnerThunk = createAsyncThunk(
+  "mechanics/assignExistingInsurancePartner",
+  async (
+    {
+      mechanicId,
+      partnerId,
+      name,
+    }: { mechanicId: string; partnerId: string; name: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      await api.assignInsurancePartner(mechanicId, partnerId);
+      return { id: partnerId, name, logoUrl: "" };
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err));
+    }
+  },
+);
+
+export const fetchInsurancePartnersListThunk = createAsyncThunk(
+  "mechanics/fetchInsurancePartnersList",
+  async (_: void, { rejectWithValue }) => {
+    try {
+      return await api.fetchInsurancePartners();
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err));
+    }
+  },
+);
+
 export const deleteMechanicServiceThunk = createAsyncThunk(
   "mechanics/deleteService",
   async (
@@ -244,10 +276,23 @@ const mechanicsSlice = createSlice({
           state.selected = { ...state.selected, ...action.payload };
         }
       })
+
       .addCase(updateMechanicThunk.rejected, (state, action) => {
         state.mutationStatus = "failed";
         state.mutationError =
           (action.payload as string) ?? "Failed to update mechanic";
+      })
+
+      .addCase(
+        assignExistingInsurancePartnerThunk.fulfilled,
+        (state, action) => {
+          if (state.selected)
+            state.selected.insurancePartners.push(action.payload);
+        },
+      )
+
+      .addCase(fetchInsurancePartnersListThunk.fulfilled, (state, action) => {
+        state.allInsurancePartners = action.payload;
       })
 
       .addCase(deleteMechanicThunk.fulfilled, (state, action) => {

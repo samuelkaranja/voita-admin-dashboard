@@ -46,7 +46,6 @@ export default function CarWashTable({
               <th className="px-6 py-3 font-medium">Rating</th>
               <th className="px-6 py-3 font-medium">Wait Time</th>
               <th className="px-6 py-3 font-medium">Verified</th>
-              <th className="px-6 py-3 font-medium">Tags</th>
               <th className="px-6 py-3 font-medium">Actions</th>
             </tr>
           </thead>
@@ -91,9 +90,6 @@ export default function CarWashTable({
                 </td>
                 <td className="px-6 py-3.5">
                   <StatusBadge verified={c.verified} />
-                </td>
-                <td className="px-6 py-3.5">
-                  <TagList tags={c.tags} />
                 </td>
                 <td className="px-6 py-3.5">
                   <RowActions

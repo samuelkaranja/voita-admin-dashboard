@@ -12,6 +12,7 @@ import {
   addMechanicServiceThunk,
   deleteMechanicServiceThunk,
 } from "@/store/slices/mechanicsSlice";
+import IconKeySelect from "../forms/IconKeySelect";
 
 interface SpecializedServicesCardProps {
   mechanicId: string;
@@ -76,11 +77,7 @@ export default function SpecializedServicesCard({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Label"
             />
-            <TextInput
-              value={iconKey}
-              onChange={(e) => setIconKey(e.target.value)}
-              placeholder="Icon Key (e.g. cpu)"
-            />
+            <IconKeySelect value={iconKey} onChange={setIconKey} />
           </div>
           <TextInput
             value={description}

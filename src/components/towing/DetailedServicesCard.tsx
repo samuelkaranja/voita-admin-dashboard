@@ -7,21 +7,29 @@ import DetailedServiceListItem from "@/components/towing/DetailedServiceListItem
 import TextInput from "@/components/forms/TextInput";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import { TowingDetailedService } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  addTowingServiceThunk,
+  deleteTowingServiceThunk,
+} from "@/store/slices/towingSlice";
+import IconKeySelect from "../forms/IconKeySelect";
 
 interface DetailedServicesCardProps {
+  providerId: string;
   services: TowingDetailedService[];
-  onChange: (services: TowingDetailedService[]) => void;
 }
 
 export default function DetailedServicesCard({
+  providerId,
   services,
-  onChange,
 }: DetailedServicesCardProps) {
+  const dispatch = useAppDispatch();
   const [isAdding, setIsAdding] = useState(false);
   const [label, setLabel] = useState("");
   const [iconKey, setIconKey] = useState("");
   const [description, setDescription] = useState("");
   const [highlighted, setHighlighted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
     setLabel("");
@@ -31,19 +39,26 @@ export default function DetailedServicesCard({
     setIsAdding(false);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!label.trim()) return;
-    onChange([
-      ...services,
-      {
-        id: crypto.randomUUID(),
-        label: label.trim(),
-        iconKey: iconKey.trim() || "truck",
-        description: description.trim(),
-        highlighted,
-      },
-    ]);
+    setSubmitting(true);
+    await dispatch(
+      addTowingServiceThunk({
+        providerId,
+        payload: {
+          label: label.trim(),
+          description: description.trim(),
+          icon: iconKey.trim() || "truck",
+          is_highlighted: highlighted,
+        },
+      }),
+    );
+    setSubmitting(false);
     resetForm();
+  }
+
+  function handleDelete(serviceId: string) {
+    dispatch(deleteTowingServiceThunk({ providerId, serviceId }));
   }
 
   return (
@@ -62,11 +77,7 @@ export default function DetailedServicesCard({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Label"
             />
-            <TextInput
-              value={iconKey}
-              onChange={(e) => setIconKey(e.target.value)}
-              placeholder="Icon Key"
-            />
+            <IconKeySelect value={iconKey} onChange={setIconKey} />
           </div>
           <TextInput
             value={description}
@@ -90,9 +101,10 @@ export default function DetailedServicesCard({
               <button
                 type="button"
                 onClick={handleAdd}
-                className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity"
+                disabled={submitting}
+                className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                Add
+                {submitting ? "Adding..." : "Add"}
               </button>
             </div>
           </div>
@@ -104,9 +116,7 @@ export default function DetailedServicesCard({
           <DetailedServiceListItem
             key={service.id}
             service={service}
-            onDelete={() =>
-              onChange(services.filter((s) => s.id !== service.id))
-            }
+            onDelete={() => handleDelete(service.id)}
           />
         ))}
       </div>

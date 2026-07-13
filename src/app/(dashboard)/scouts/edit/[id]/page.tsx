@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect } from "react";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/layout/PageHeader";
 import Card from "@/components/ui/Card";
@@ -8,7 +8,11 @@ import EditScoutForm from "@/components/scouts/EditScoutForm";
 import TagsCard from "@/components/scouts/TagsCard";
 import SkillsCard from "@/components/scouts/SkillsCard";
 import ReviewsCard from "@/components/scouts/ReviewsCard";
-import { ScoutSkill, ScoutReview } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchScoutByIdThunk,
+  clearSelectedScout,
+} from "@/store/slices/scoutsSlice";
 
 export default function EditScoutPage({
   params,
@@ -16,12 +20,22 @@ export default function EditScoutPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  //const scout = getScoutById(id);
-  // if (!scout) notFound();
+  const dispatch = useAppDispatch();
+  const { selected: scout, status } = useAppSelector((state) => state.scouts);
 
-  // const [tags, setTags] = useState<string[]>(scout.tags);
-  // const [skills, setSkills] = useState<ScoutSkill[]>(scout.skills);
-  // const [reviews, setReviews] = useState<ScoutReview[]>(scout.reviews);
+  useEffect(() => {
+    dispatch(fetchScoutByIdThunk(id));
+    return () => {
+      dispatch(clearSelectedScout());
+    };
+  }, [dispatch, id]);
+
+  if (status === "loading" || !scout) {
+    return <p className="text-voita-text-muted text-sm">Loading provider...</p>;
+  }
+  if (status === "failed") {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,13 +48,13 @@ export default function EditScoutPage({
       />
 
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
-        {/* <Card className="p-5 sm:p-8">
+        <Card className="p-5 sm:p-8">
           <EditScoutForm scout={scout} />
         </Card>
 
-        <TagsCard tags={tags} onChange={setTags} />
-        <SkillsCard skills={skills} onChange={setSkills} />
-        <ReviewsCard reviews={reviews} onChange={setReviews} /> */}
+        <TagsCard scoutId={scout.id} tags={scout.tags} />
+        <SkillsCard scoutId={scout.id} skills={scout.skills} />
+        <ReviewsCard scoutId={scout.id} reviews={scout.reviews} />
       </div>
     </div>
   );

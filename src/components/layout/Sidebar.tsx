@@ -64,7 +64,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        <SidebarUserFooter email="admin@voita.app" role="Super Admin" />
+        <SidebarUserFooter />
       </aside>
     </>
   );

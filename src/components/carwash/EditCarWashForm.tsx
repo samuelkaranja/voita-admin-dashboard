@@ -6,32 +6,60 @@ import { CarWash } from "@/types";
 import FormField from "@/components/forms/FormField";
 import TextInput from "@/components/forms/TextInput";
 import TextArea from "@/components/forms/TextArea";
-import TagInput from "@/components/forms/TagInput";
 import ImageUploadInput from "@/components/forms/ImageUploadInput";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import FormActions from "@/components/forms/FormActions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateCarWashThunk } from "@/store/slices/carWashSlice";
 
 export default function EditCarWashForm({ carWash }: { carWash: CarWash }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { mutationStatus, mutationError } = useAppSelector(
+    (state) => state.carWash,
+  );
+
   const [name, setName] = useState(carWash.name);
   const [area, setArea] = useState(carWash.area);
   const [address, setAddress] = useState(carWash.address);
   const [description, setDescription] = useState(carWash.description);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [waitTime, setWaitTime] = useState(carWash.waitTimeMins.toString());
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [waitTime, setWaitTime] = useState(
+    carWash.waitTimeMins?.toString() ?? "",
+  );
   const [rating, setRating] = useState(carWash.rating.toString());
   const [verified, setVerified] = useState(carWash.verified);
-  const [tags, setTags] = useState<string[]>(carWash.tags);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: if imageFile is set, upload to Cloudinary first, then PATCH
-    // voita-backend.fly.dev/api/v1/car-wash/{carWash.id} with the resulting URL + form fields
-    router.push("/car-wash");
+    const result = await dispatch(
+      updateCarWashThunk({
+        id: carWash.id,
+        payload: {
+          name,
+          area,
+          address,
+          description,
+          wait_time_mins: waitTime ? Number(waitTime) : undefined,
+          rating: rating ? Number(rating) : undefined,
+          verified,
+        },
+        photoFile,
+      }),
+    );
+    if (updateCarWashThunk.fulfilled.match(result)) {
+      router.push("/car-wash");
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {mutationStatus === "failed" && (
+        <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+          {mutationError}
+        </p>
+      )}
+
       <FormField label="Name">
         <TextInput
           value={name}
@@ -42,17 +70,12 @@ export default function EditCarWashForm({ carWash }: { carWash: CarWash }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FormField label="Area / Neighbourhood">
-          <TextInput
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            required
-          />
+          <TextInput value={area} onChange={(e) => setArea(e.target.value)} />
         </FormField>
         <FormField label="Address">
           <TextInput
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            required
           />
         </FormField>
       </div>
@@ -68,7 +91,7 @@ export default function EditCarWashForm({ carWash }: { carWash: CarWash }) {
       <FormField label="Photo">
         <ImageUploadInput
           initialUrl={carWash.avatarUrl}
-          onFileSelect={setImageFile}
+          onFileSelect={setPhotoFile}
         />
       </FormField>
 
@@ -97,7 +120,6 @@ export default function EditCarWashForm({ carWash }: { carWash: CarWash }) {
             </FormField>
           </div>
         </div>
-
         <div className="pb-0.5 sm:pb-2.5">
           <ToggleSwitch
             label="Verified"
@@ -107,18 +129,12 @@ export default function EditCarWashForm({ carWash }: { carWash: CarWash }) {
         </div>
       </div>
 
-      <FormField label="Tags">
-        <TagInput
-          tags={tags}
-          onChange={setTags}
-          placeholder="Add a tag and press Enter"
-        />
-      </FormField>
-
       <div className="pt-2">
         <FormActions
           onCancel={() => router.push("/car-wash")}
-          saveLabel="Update Car Wash"
+          saveLabel={
+            mutationStatus === "loading" ? "Saving..." : "Update Car Wash"
+          }
         />
       </div>
     </form>

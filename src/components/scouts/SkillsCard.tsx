@@ -6,17 +6,25 @@ import ListSectionHeader from "@/components/ui/ListSectionHeader";
 import SkillListItem from "@/components/scouts/SkillListItem";
 import TextInput from "@/components/forms/TextInput";
 import { ScoutSkill } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  addScoutSkillThunk,
+  deleteScoutSkillThunk,
+} from "@/store/slices/scoutsSlice";
+import IconKeySelect from "../forms/IconKeySelect";
 
 interface SkillsCardProps {
+  scoutId: string;
   skills: ScoutSkill[];
-  onChange: (skills: ScoutSkill[]) => void;
 }
 
-export default function SkillsCard({ skills, onChange }: SkillsCardProps) {
+export default function SkillsCard({ scoutId, skills }: SkillsCardProps) {
+  const dispatch = useAppDispatch();
   const [isAdding, setIsAdding] = useState(false);
   const [label, setLabel] = useState("");
   const [iconKey, setIconKey] = useState("");
   const [subtitle, setSubtitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
     setLabel("");
@@ -25,18 +33,25 @@ export default function SkillsCard({ skills, onChange }: SkillsCardProps) {
     setIsAdding(false);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!label.trim()) return;
-    onChange([
-      ...skills,
-      {
-        id: crypto.randomUUID(),
-        label: label.trim(),
-        iconKey: iconKey.trim() || "search",
-        subtitle: subtitle.trim(),
-      },
-    ]);
+    setSubmitting(true);
+    await dispatch(
+      addScoutSkillThunk({
+        scoutId,
+        payload: {
+          label: label.trim(),
+          subtitle: subtitle.trim(),
+          icon: iconKey.trim() || "search",
+        },
+      }),
+    );
+    setSubmitting(false);
     resetForm();
+  }
+
+  function handleDelete(skillId: string) {
+    dispatch(deleteScoutSkillThunk({ scoutId, skillId }));
   }
 
   return (
@@ -55,11 +70,7 @@ export default function SkillsCard({ skills, onChange }: SkillsCardProps) {
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Label"
             />
-            <TextInput
-              value={iconKey}
-              onChange={(e) => setIconKey(e.target.value)}
-              placeholder="Icon Key"
-            />
+            <IconKeySelect value={iconKey} onChange={setIconKey} />
           </div>
           <TextInput
             value={subtitle}
@@ -77,9 +88,10 @@ export default function SkillsCard({ skills, onChange }: SkillsCardProps) {
             <button
               type="button"
               onClick={handleAdd}
-              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity"
+              disabled={submitting}
+              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Add
+              {submitting ? "Adding..." : "Add"}
             </button>
           </div>
         </div>
@@ -90,7 +102,7 @@ export default function SkillsCard({ skills, onChange }: SkillsCardProps) {
           <SkillListItem
             key={skill.id}
             skill={skill}
-            onDelete={() => onChange(skills.filter((s) => s.id !== skill.id))}
+            onDelete={() => handleDelete(skill.id)}
           />
         ))}
       </div>

@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TowingProvider } from "@/types";
+import { TowingProvider, VehicleType, TowingAvailability } from "@/types";
 import FormField from "@/components/forms/FormField";
 import TextInput from "@/components/forms/TextInput";
 import TextArea from "@/components/forms/TextArea";
 import Select from "@/components/forms/Select";
-import TagInput from "@/components/forms/TagInput";
 import ImageUploadInput from "@/components/forms/ImageUploadInput";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import FormActions from "@/components/forms/FormActions";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { updateTowingProviderThunk } from "@/store/slices/towingSlice";
+import {
+  vehicleTypeToBackend,
+  availabilityToBackend,
+} from "@/lib/api/towingApi";
 
-const VEHICLE_TYPES = ["Flatbed", "Roadside", "Heavy Duty"];
-const AVAILABILITY_OPTIONS = ["Available", "Busy"];
+const VEHICLE_TYPES: VehicleType[] = ["Flatbed", "Roadside", "Heavy Duty"];
+const AVAILABILITY_OPTIONS: TowingAvailability[] = ["Available", "Busy"];
 
 export default function EditTowingForm({
   provider,
@@ -21,28 +26,60 @@ export default function EditTowingForm({
   provider: TowingProvider;
 }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { mutationStatus, mutationError } = useAppSelector(
+    (state) => state.towing,
+  );
+
   const [name, setName] = useState(provider.name);
   const [description, setDescription] = useState(provider.description);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [phoneNumber, setPhoneNumber] = useState(provider.phoneNumber);
   const [etaMin, setEtaMin] = useState(provider.etaMinMins?.toString() ?? "");
   const [etaMax, setEtaMax] = useState(provider.etaMaxMins?.toString() ?? "");
-  const [vehicleType, setVehicleType] = useState(provider.vehicleType);
-  const [availability, setAvailability] = useState(provider.availability);
-  const [tags, setTags] = useState<string[]>(provider.tags);
+  const [vehicleType, setVehicleType] = useState<VehicleType>(
+    provider.vehicleType,
+  );
+  const [availability, setAvailability] = useState<TowingAvailability>(
+    provider.availability,
+  );
   const [rating, setRating] = useState(provider.rating.toString());
   const [isPartner, setIsPartner] = useState(provider.isPartner);
-  const [verified, setVerified] = useState(true);
+  const [verified, setVerified] = useState(provider.verified);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: if imageFile is set, upload to Cloudinary first, then PATCH
-    // voita-backend.fly.dev/api/v1/towing/{provider.id} with the resulting URL + form fields
-    router.push("/towing");
+    const result = await dispatch(
+      updateTowingProviderThunk({
+        id: provider.id,
+        payload: {
+          name,
+          description,
+          phone_number: phoneNumber,
+          eta_min: etaMin ? Number(etaMin) : undefined,
+          eta_max: etaMax ? Number(etaMax) : undefined,
+          vehicle_type: vehicleTypeToBackend(vehicleType),
+          availability: availabilityToBackend(availability),
+          rating: rating ? Number(rating) : undefined,
+          is_partner: isPartner,
+          verified,
+        },
+        photoFile,
+      }),
+    );
+    if (updateTowingProviderThunk.fulfilled.match(result)) {
+      router.push("/towing");
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      {mutationStatus === "failed" && (
+        <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3">
+          {mutationError}
+        </p>
+      )}
+
       <FormField label="Name">
         <TextInput
           value={name}
@@ -62,7 +99,7 @@ export default function EditTowingForm({
       <FormField label="Photo">
         <ImageUploadInput
           initialUrl={provider.avatarUrl}
-          onFileSelect={setImageFile}
+          onFileSelect={setPhotoFile}
         />
       </FormField>
 
@@ -71,7 +108,6 @@ export default function EditTowingForm({
           type="tel"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
-          required
         />
       </FormField>
 
@@ -99,9 +135,7 @@ export default function EditTowingForm({
           <Select
             options={VEHICLE_TYPES}
             value={vehicleType}
-            onChange={(e) =>
-              setVehicleType(e.target.value as typeof vehicleType)
-            }
+            onChange={(e) => setVehicleType(e.target.value as VehicleType)}
           />
         </FormField>
         <FormField label="Availability">
@@ -109,19 +143,11 @@ export default function EditTowingForm({
             options={AVAILABILITY_OPTIONS}
             value={availability}
             onChange={(e) =>
-              setAvailability(e.target.value as typeof availability)
+              setAvailability(e.target.value as TowingAvailability)
             }
           />
         </FormField>
       </div>
-
-      <FormField label="Tags">
-        <TagInput
-          tags={tags}
-          onChange={setTags}
-          placeholder="Add a tag and press Enter"
-        />
-      </FormField>
 
       <div className="flex flex-col sm:flex-row sm:items-end gap-4">
         <div className="w-full sm:max-w-[160px]">
@@ -136,7 +162,6 @@ export default function EditTowingForm({
             />
           </FormField>
         </div>
-
         <div className="flex items-center gap-6 pb-0.5 sm:pb-2.5">
           <ToggleSwitch
             label="Is Partner"
@@ -154,7 +179,9 @@ export default function EditTowingForm({
       <div className="pt-2">
         <FormActions
           onCancel={() => router.push("/towing")}
-          saveLabel="Update Provider"
+          saveLabel={
+            mutationStatus === "loading" ? "Saving..." : "Update Provider"
+          }
         />
       </div>
     </form>

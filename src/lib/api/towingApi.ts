@@ -96,6 +96,7 @@ function adaptListItem(item: BackendTowingListItem): TowingProvider {
     etaMaxMins: item.eta_max,
     availability: toAvailability(item.availability),
     isPartner: item.is_partner,
+    verified: item.verified, // added
     rating: item.rating,
     phoneNumber: "",
     description: "",
@@ -116,6 +117,7 @@ function adaptDetail(d: BackendTowingDetail): TowingProvider {
     etaMaxMins: d.eta_max,
     availability: toAvailability(d.availability),
     isPartner: d.is_partner,
+    verified: d.verified, // added
     rating: d.rating,
     phoneNumber: d.phone_number ?? "",
     description: d.description ?? "",
@@ -124,6 +126,21 @@ function adaptDetail(d: BackendTowingDetail): TowingProvider {
     detailedServices: d.services.map(adaptDetailedService),
     quickServices: d.quick_services.map(adaptQuickService),
   };
+}
+
+export function vehicleTypeToBackend(type: VehicleType): string {
+  const map: Record<VehicleType, string> = {
+    Flatbed: "flatbed",
+    Roadside: "roadside",
+    "Heavy Duty": "heavy",
+  };
+  return map[type];
+}
+
+export function availabilityToBackend(
+  status: TowingAvailability,
+): "available" | "busy" {
+  return status === "Available" ? "available" : "busy";
 }
 
 export async function fetchTowingProviders(params?: {
@@ -156,6 +173,7 @@ export interface CreateTowingPayload {
   verified?: boolean;
   phone_number?: string;
   description?: string;
+  rating?: number;
 }
 
 export async function createTowingProvider(

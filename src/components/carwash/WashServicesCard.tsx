@@ -8,22 +8,30 @@ import TextInput from "@/components/forms/TextInput";
 import TextArea from "@/components/forms/TextArea";
 import ToggleSwitch from "@/components/forms/ToggleSwitch";
 import { CarWashService } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  addCarWashServiceThunk,
+  deleteCarWashServiceThunk,
+} from "@/store/slices/carWashSlice";
+import IconKeySelect from "../forms/IconKeySelect";
 
 interface WashServicesCardProps {
+  carWashId: string;
   services: CarWashService[];
-  onChange: (services: CarWashService[]) => void;
 }
 
 export default function WashServicesCard({
+  carWashId,
   services,
-  onChange,
 }: WashServicesCardProps) {
+  const dispatch = useAppDispatch();
   const [isAdding, setIsAdding] = useState(false);
   const [label, setLabel] = useState("");
   const [iconKey, setIconKey] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [premium, setPremium] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
     setLabel("");
@@ -34,20 +42,27 @@ export default function WashServicesCard({
     setIsAdding(false);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!label.trim()) return;
-    onChange([
-      ...services,
-      {
-        id: crypto.randomUUID(),
-        label: label.trim(),
-        iconKey: iconKey.trim() || "sparkles",
-        description: description.trim(),
-        price: Number(price) || 0,
-        premium,
-      },
-    ]);
+    setSubmitting(true);
+    await dispatch(
+      addCarWashServiceThunk({
+        carWashId,
+        payload: {
+          label: label.trim(),
+          description: description.trim(),
+          icon: iconKey.trim() || "sparkles",
+          price: price ? `Kshs${price}` : undefined,
+          is_premium: premium,
+        },
+      }),
+    );
+    setSubmitting(false);
     resetForm();
+  }
+
+  function handleDelete(serviceId: string) {
+    dispatch(deleteCarWashServiceThunk({ carWashId, serviceId }));
   }
 
   return (
@@ -66,11 +81,7 @@ export default function WashServicesCard({
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Label"
             />
-            <TextInput
-              value={iconKey}
-              onChange={(e) => setIconKey(e.target.value)}
-              placeholder="Icon Key"
-            />
+            <IconKeySelect value={iconKey} onChange={setIconKey} />
           </div>
           <TextArea
             value={description}
@@ -85,7 +96,7 @@ export default function WashServicesCard({
                 min={0}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                placeholder="Price (₦)"
+                placeholder="Price (Kshs)"
               />
             </div>
             <ToggleSwitch
@@ -105,9 +116,10 @@ export default function WashServicesCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity"
+              disabled={submitting}
+              className="px-4 py-2 rounded-lg bg-voita-accent text-voita-bg text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Add
+              {submitting ? "Adding..." : "Add"}
             </button>
           </div>
         </div>
@@ -118,9 +130,7 @@ export default function WashServicesCard({
           <WashServiceListItem
             key={service.id}
             service={service}
-            onDelete={() =>
-              onChange(services.filter((s) => s.id !== service.id))
-            }
+            onDelete={() => handleDelete(service.id)}
           />
         ))}
       </div>

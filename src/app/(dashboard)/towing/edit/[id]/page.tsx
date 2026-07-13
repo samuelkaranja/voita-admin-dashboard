@@ -1,13 +1,17 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect } from "react";
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/layout/PageHeader";
 import Card from "@/components/ui/Card";
 import EditTowingForm from "@/components/towing/EditTowingForm";
 import DetailedServicesCard from "@/components/towing/DetailedServicesCard";
 import QuickServicesCard from "@/components/towing/QuickServicesCard";
-import { TowingDetailedService, TowingQuickService } from "@/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchTowingProviderByIdThunk,
+  clearSelectedTowingProvider,
+} from "@/store/slices/towingSlice";
 
 export default function EditTowingPage({
   params,
@@ -15,15 +19,24 @@ export default function EditTowingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  //const provider = getTowingProviderById(id);
-  // if (!provider) notFound();
+  const dispatch = useAppDispatch();
+  const { selected: provider, status } = useAppSelector(
+    (state) => state.towing,
+  );
 
-  // const [detailedServices, setDetailedServices] = useState<
-  //   TowingDetailedService[]
-  // >(provider.detailedServices);
-  // const [quickServices, setQuickServices] = useState<TowingQuickService[]>(
-  //   provider.quickServices,
-  // );
+  useEffect(() => {
+    dispatch(fetchTowingProviderByIdThunk(id));
+    return () => {
+      dispatch(clearSelectedTowingProvider());
+    };
+  }, [dispatch, id]);
+
+  if (status === "loading" || !provider) {
+    return <p className="text-voita-text-muted text-sm">Loading provider...</p>;
+  }
+  if (status === "failed") {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,18 +49,18 @@ export default function EditTowingPage({
       />
 
       <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
-        {/* <Card className="p-5 sm:p-8">
+        <Card className="p-5 sm:p-8">
           <EditTowingForm provider={provider} />
         </Card>
 
         <DetailedServicesCard
-          services={detailedServices}
-          onChange={setDetailedServices}
+          providerId={provider.id}
+          services={provider.detailedServices}
         />
         <QuickServicesCard
-          services={quickServices}
-          onChange={setQuickServices}
-        /> */}
+          providerId={provider.id}
+          services={provider.quickServices}
+        />
       </div>
     </div>
   );
