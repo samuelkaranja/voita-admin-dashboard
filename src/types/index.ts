@@ -170,5 +170,53 @@ export interface ActivityItem {
 export interface SidebarLinkData {
   label: string;
   href: string;
-  icon: "grid" | "wrench" | "droplet" | "truck" | "radar";
+  icon:
+    | "grid"
+    | "wrench"
+    | "droplet"
+    | "truck"
+    | "radar"
+    | "userCheck"
+    | "messageSquare";
+}
+
+export type RoomType = "general" | "brand";
+
+export interface CommunityRoom {
+  id: string;
+  name: string;
+  type: RoomType;
+  memberCount: number;
+  pendingRequestCount: number;
+  iconUrl: string | null;
+  brandSlug?: string | null;
+  description?: string | null;
+  rulesText?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface JoinRequest {
+  id: string;
+  roomId: string;
+  roomName: string;
+  userId: string;
+  userName: string;
+  requestedAt: string;
+}
+
+export interface RoomMember {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string | null;
+  isModerator: boolean;
+  joinedAt: string;
+}
+
+export interface PaginatedMembers {
+  members: RoomMember[];
+  total: number;
+  page: number;
+  pageSize: number;
 }

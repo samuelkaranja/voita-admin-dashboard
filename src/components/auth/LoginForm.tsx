@@ -62,7 +62,7 @@ export default function LoginForm() {
             <PhoneInput
               value={phone}
               onChange={setPhone}
-              placeholder="e.g. 0704391679"
+              placeholder="0700000000"
             />
           </div>
 
@@ -80,16 +80,14 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full bg-voita-accent text-voita-bg font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-opacity disabled:opacity-50 mt-1"
+            className="w-full bg-voita-accent text-white font-semibold text-sm rounded-lg py-2.5 hover:opacity-90 transition-opacity disabled:opacity-50 mt-1"
           >
             {status === "loading" ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
 
-      <p className="text-voita-text-muted text-xs">
-        Restricted access only
-      </p>
+      <p className="text-voita-text-muted text-xs">Restricted access only</p>
     </div>
   );
 }

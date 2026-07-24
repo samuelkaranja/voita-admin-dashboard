@@ -8,6 +8,8 @@ import {
   Droplet,
   Truck,
   Radar,
+  UserCheck,
+  MessageSquare,
   LucideIcon,
 } from "lucide-react";
 import clsx from "clsx";
@@ -19,6 +21,8 @@ const iconMap: Record<SidebarLinkData["icon"], LucideIcon> = {
   droplet: Droplet,
   truck: Truck,
   radar: Radar,
+  userCheck: UserCheck,
+  messageSquare: MessageSquare,
 };
 
 export default function SidebarLink({ label, href, icon }: SidebarLinkData) {

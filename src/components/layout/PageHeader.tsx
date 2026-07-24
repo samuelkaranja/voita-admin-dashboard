@@ -6,6 +6,7 @@ import { BreadcrumbItem } from "@/types";
 interface PageHeaderProps {
   title: string;
   breadcrumb?: BreadcrumbItem[];
+  badge?: React.ReactNode;
   action?: {
     label: string;
     href: string;
@@ -16,16 +17,20 @@ interface PageHeaderProps {
 export default function PageHeader({
   title,
   breadcrumb,
+  badge,
   action,
 }: PageHeaderProps) {
   const Icon = action?.icon;
 
   return (
-    <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-voita-text">
-          {title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-voita-text">
+            {title}
+          </h1>
+          {badge}
+        </div>
         {breadcrumb && (
           <div className="mt-1">
             <Breadcrumb items={breadcrumb} />
