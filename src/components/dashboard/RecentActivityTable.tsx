@@ -1,5 +1,7 @@
+import Link from "next/link";
 import ServiceBadge from "./ServiceBadge";
 import { ActivityItem } from "@/types";
+import { getEditHrefForActivity } from "@/lib/getEditHrefForActivity";
 import clsx from "clsx";
 
 function formatDate(iso: string) {
@@ -17,7 +19,7 @@ export default function RecentActivityTable({
 }) {
   return (
     <div className="bg-voita-card rounded-xl border border-voita-border overflow-hidden">
-      <div className="px-4 sm:px-6 py-4 border-b border-voita-border">
+      <div className="px-6 py-4 border-b border-voita-border">
         <h3 className="text-voita-text font-semibold text-sm">
           Recent Activity
         </h3>
@@ -26,7 +28,7 @@ export default function RecentActivityTable({
         </p>
       </div>
 
-      {/* Desktop / tablet table */}
+      {/* Desktop table */}
       <table className="w-full text-sm hidden sm:table">
         <thead>
           <tr className="text-left text-voita-text-muted text-xs uppercase tracking-wide">
@@ -55,9 +57,12 @@ export default function RecentActivityTable({
                 {formatDate(item.dateAdded)}
               </td>
               <td className="px-6 py-3.5">
-                <button className="text-voita-accent hover:underline text-sm font-medium">
+                <Link
+                  href={getEditHrefForActivity(item)}
+                  className="text-voita-accent hover:underline text-sm font-medium"
+                >
                   Quick Edit →
-                </button>
+                </Link>
               </td>
             </tr>
           ))}
@@ -76,9 +81,12 @@ export default function RecentActivityTable({
               <p className="text-voita-text-secondary text-xs">
                 {formatDate(item.dateAdded)}
               </p>
-              <button className="text-voita-accent hover:underline text-xs font-medium">
+              <Link
+                href={getEditHrefForActivity(item)}
+                className="text-voita-accent hover:underline text-xs font-medium"
+              >
                 Quick Edit →
-              </button>
+              </Link>
             </div>
           </div>
         ))}

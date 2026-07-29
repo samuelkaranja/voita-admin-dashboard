@@ -177,7 +177,8 @@ export interface SidebarLinkData {
     | "truck"
     | "radar"
     | "userCheck"
-    | "messageSquare";
+    | "messageSquare"
+    | "inbox";
 }
 
 export type RoomType = "general" | "brand";
@@ -219,4 +220,26 @@ export interface PaginatedMembers {
   total: number;
   page: number;
   pageSize: number;
+}
+
+export type SuggestionStatus = "pending" | "approved" | "rejected" | "all";
+export type MechanicSpecialtyOption =
+  | "Engine"
+  | "Electrical"
+  | "Bodywork"
+  | "Transmission";
+
+export interface MechanicSuggestion {
+  id: string;
+  name: string;
+  phone: string;
+  location: string;
+  specialty: MechanicSpecialtyOption;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+  submittedBy: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

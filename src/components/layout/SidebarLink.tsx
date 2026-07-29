@@ -11,6 +11,7 @@ import {
   UserCheck,
   MessageSquare,
   LucideIcon,
+  Inbox,
 } from "lucide-react";
 import clsx from "clsx";
 import { SidebarLinkData } from "@/types";
@@ -23,6 +24,7 @@ const iconMap: Record<SidebarLinkData["icon"], LucideIcon> = {
   radar: Radar,
   userCheck: UserCheck,
   messageSquare: MessageSquare,
+  inbox: Inbox,
 };
 
 export default function SidebarLink({ label, href, icon }: SidebarLinkData) {

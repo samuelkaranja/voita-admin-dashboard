@@ -5,6 +5,7 @@ import carWashReducer from "./slices/carWashSlice";
 import towingReducer from "./slices/towingSlice";
 import scoutsReducer from "./slices/scoutsSlice";
 import communityReducer from "./slices/communitySlice";
+import mechanicSuggestionsReducer from "./slices/mechanicSuggestionsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     towing: towingReducer,
     scouts: scoutsReducer,
     community: communityReducer,
+    mechanicSuggestions: mechanicSuggestionsReducer,
   },
 });
 

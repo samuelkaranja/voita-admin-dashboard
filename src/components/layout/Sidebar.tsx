@@ -7,6 +7,7 @@ import { SidebarLinkData } from "@/types";
 const mainLinks: SidebarLinkData[] = [
   { label: "Overview", href: "/", icon: "grid" },
   { label: "Mechanics", href: "/mechanics", icon: "wrench" },
+  { label: "Suggestions", href: "/mechanics/suggestions", icon: "inbox" },
   { label: "Car Wash", href: "/car-wash", icon: "droplet" },
   { label: "Towing", href: "/towing", icon: "truck" },
   { label: "Scouts", href: "/scouts", icon: "radar" },
