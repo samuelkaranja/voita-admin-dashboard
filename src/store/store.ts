@@ -6,6 +6,7 @@ import towingReducer from "./slices/towingSlice";
 import scoutsReducer from "./slices/scoutsSlice";
 import communityReducer from "./slices/communitySlice";
 import mechanicSuggestionsReducer from "./slices/mechanicSuggestionsSlice";
+import alertsReducer from "./slices/alertsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     scouts: scoutsReducer,
     community: communityReducer,
     mechanicSuggestions: mechanicSuggestionsReducer,
+    alerts: alertsReducer,
   },
 });
 

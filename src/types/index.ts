@@ -178,7 +178,8 @@ export interface SidebarLinkData {
     | "radar"
     | "userCheck"
     | "messageSquare"
-    | "inbox";
+    | "inbox"
+    | "bell";
 }
 
 export type RoomType = "general" | "brand";
@@ -242,4 +243,26 @@ export interface MechanicSuggestion {
   reviewedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type AlertTargetType = "all_users" | "specific_user" | "role_based";
+export type AlertPriority = "low" | "normal" | "high" | "urgent";
+export type AlertStatus = "draft" | "sent" | "failed";
+
+export interface Alert {
+  id: string;
+  title: string;
+  message: string;
+  alertType: string;
+  targetType: AlertTargetType;
+  targetDriverId: string | null;
+  targetRole: string | null;
+  priority: AlertPriority;
+  status: AlertStatus;
+  createdAt: string;
+  sentAt: string | null;
+  recipientsCount: number;
+  successCount: number;
+  failureCount: number;
+  createdBy?: string;
 }

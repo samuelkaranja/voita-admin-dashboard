@@ -29,6 +29,7 @@ export const fetchSuggestionsThunk = createAsyncThunk(
   ) => {
     try {
       return await api.fetchSuggestions(params);
+      console.log('Params:', params);
     } catch (err) {
       return rejectWithValue(extractErrorMessage(err));
     }

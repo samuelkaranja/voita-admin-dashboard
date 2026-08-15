@@ -11,6 +11,7 @@ const mainLinks: SidebarLinkData[] = [
   { label: "Car Wash", href: "/car-wash", icon: "droplet" },
   { label: "Towing", href: "/towing", icon: "truck" },
   { label: "Scouts", href: "/scouts", icon: "radar" },
+  { label: "Alerts", href: "/alerts", icon: "bell" },
 ];
 
 const communityLinks: SidebarLinkData[] = [
