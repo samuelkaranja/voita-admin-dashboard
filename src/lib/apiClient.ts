@@ -40,9 +40,17 @@ export function extractErrorMessage(error: unknown): string {
     if (error.response?.status === 403) {
       return "Access denied. Your session may have expired — please sign in again.";
     }
-    return (
-      error.response?.data?.detail ?? error.message ?? "Something went wrong"
-    );
+    const detail = error.response?.data?.detail;
+    if (Array.isArray(detail)) {
+      // FastAPI/Pydantic validation errors: [{type, loc, msg, ...}, ...]
+      return detail
+        .map((d: { loc?: string[]; msg?: string }) =>
+          d.loc ? `${d.loc[d.loc.length - 1]}: ${d.msg}` : d.msg,
+        )
+        .join("; ");
+    }
+    if (typeof detail === "string") return detail;
+    return error.message ?? "Something went wrong";
   }
   return "Something went wrong";
 }

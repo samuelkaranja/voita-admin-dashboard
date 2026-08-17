@@ -123,7 +123,9 @@ export async function createAlert(payload: CreateAlertPayload): Promise<{
     // Don't set Content-Type manually — axios strips the instance's default
     // 'application/json' header for FormData bodies and lets the browser
     // attach the correct multipart boundary automatically.
-    const { data } = await apiClient.post("/admin/alerts", formData);
+    const { data } = await apiClient.post("/admin/alerts", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return {
       alertId: data.alert_id,
       status: data.status,
