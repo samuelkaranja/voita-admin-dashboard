@@ -10,6 +10,7 @@ import {
   sendDraftAlertThunk,
   clearSelectedAlert,
 } from "@/store/slices/alertsSlice";
+import { Pencil } from "lucide-react";
 
 export default function AlertDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +44,18 @@ export default function AlertDetailPage() {
       >
         ← Back to Alerts
       </Link>
-      <PageHeader title={alert.title} />
+      <PageHeader
+        title={alert.title}
+        action={
+          alert.status === "draft"
+            ? {
+                label: "Edit Alert",
+                href: `/alerts/${alert.id}/edit`,
+                icon: Pencil,
+              }
+            : undefined
+        }
+      />
 
       <div className="rounded-lg border border-voita-border divide-y divide-voita-border">
         <DetailRow label="Message" value={alert.message} />

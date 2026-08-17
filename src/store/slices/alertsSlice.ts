@@ -92,6 +92,25 @@ export const sendDraftAlertThunk = createAsyncThunk(
   },
 );
 
+export const updateAlertThunk = createAsyncThunk(
+  "alerts/update",
+  async (
+    { id, payload }: { id: string; payload: api.UpdateAlertPayload },
+    { dispatch, rejectWithValue },
+  ) => {
+    try {
+      await api.updateAlert(id, payload);
+      const result = await dispatch(fetchAlertByIdThunk(id));
+      if (fetchAlertByIdThunk.rejected.match(result)) {
+        return rejectWithValue(result.payload as string);
+      }
+      return result.payload as Alert;
+    } catch (err) {
+      return rejectWithValue(extractErrorMessage(err));
+    }
+  },
+);
+
 const alertsSlice = createSlice({
   name: "alerts",
   initialState,
@@ -171,6 +190,23 @@ const alertsSlice = createSlice({
         state.mutationStatus = "failed";
         state.mutationError =
           (action.payload as string) ?? "Failed to send alert";
+      })
+
+      .addCase(updateAlertThunk.pending, (state) => {
+        state.mutationStatus = "loading";
+        state.mutationError = null;
+      })
+      .addCase(updateAlertThunk.fulfilled, (state, action) => {
+        state.mutationStatus = "succeeded";
+        const updated = action.payload;
+        const index = state.items.findIndex((a) => a.id === updated.id);
+        if (index !== -1) state.items[index] = updated;
+        if (state.selected?.id === updated.id) state.selected = updated;
+      })
+      .addCase(updateAlertThunk.rejected, (state, action) => {
+        state.mutationStatus = "failed";
+        state.mutationError =
+          (action.payload as string) ?? "Failed to update alert";
       });
   },
 });

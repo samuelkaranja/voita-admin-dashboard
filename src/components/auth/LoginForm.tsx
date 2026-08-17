@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Wrench } from "lucide-react";
 import PhoneInput from "@/components/forms/PhoneInput";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginThunk } from "@/store/slices/authSlice";
+import Image from "next/image";
+import voitaLogo from "@/assets/voita.png";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -27,8 +28,12 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md flex flex-col items-center gap-6">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-voita-accent flex items-center justify-center">
-          <Wrench size={22} className="text-voita-bg" />
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+          <Image
+            src={voitaLogo}
+            alt="Voita"
+            className="w-12 h-12 object-contain"
+          />
         </div>
         <div className="text-center">
           <h1 className="text-white font-bold text-xl">Voita Admin</h1>
@@ -62,7 +67,7 @@ export default function LoginForm() {
             <PhoneInput
               value={phone}
               onChange={setPhone}
-              placeholder="0700000000"
+              placeholder="07xxxxxxxx"
             />
           </div>
 

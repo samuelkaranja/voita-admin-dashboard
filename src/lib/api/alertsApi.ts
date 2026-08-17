@@ -12,6 +12,15 @@ export interface CreateAlertPayload {
   send_immediately: boolean;
 }
 
+export interface UpdateAlertPayload {
+  title?: string;
+  message?: string;
+  target_type?: AlertTargetType;
+  target_driver_id?: string;
+  target_role?: string;
+  priority?: AlertPriority;
+}
+
 interface AlertSendFailureDetail {
   message: string;
   alert_id: string;
@@ -157,4 +166,34 @@ export async function sendDraftAlert(id: string): Promise<{
     successCount: data.success_count,
     failureCount: data.failure_count,
   };
+}
+
+export async function updateAlert(
+  id: string,
+  payload: UpdateAlertPayload,
+): Promise<void> {
+  const formData = new FormData();
+  if (payload.title !== undefined) formData.append("title", payload.title);
+  if (payload.message !== undefined)
+    formData.append("message", payload.message);
+  if (payload.target_type !== undefined)
+    formData.append("target_type", payload.target_type);
+  if (payload.target_driver_id !== undefined) {
+    formData.append("target_driver_id", payload.target_driver_id);
+  }
+  if (payload.target_role !== undefined) {
+    formData.append("target_role", payload.target_role);
+  }
+  if (payload.priority !== undefined)
+    formData.append("priority", payload.priority);
+
+  // Same Content-Type override needed as createAlert — apiClient's instance-level
+  // 'application/json' default otherwise wins over axios's FormData auto-detection.
+  await apiClient.patch(`/admin/alerts/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  // Deliberately not parsing/returning the response body — its documented shape
+  // has two colliding "message" keys and is missing fields (recipients_count,
+  // created_at, etc.) that the rest of the app relies on. The caller re-fetches
+  // the canonical alert via fetchAlertById instead.
 }

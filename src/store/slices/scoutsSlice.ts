@@ -229,8 +229,17 @@ const scoutsSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      .addCase(fetchScoutByIdThunk.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
       .addCase(fetchScoutByIdThunk.fulfilled, (state, action) => {
+        state.status = "succeeded";
         state.selected = action.payload;
+      })
+      .addCase(fetchScoutByIdThunk.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = (action.payload as string) ?? "Failed to load scout";
       })
 
       .addCase(createScoutThunk.pending, (state) => {

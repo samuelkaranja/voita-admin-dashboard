@@ -1,8 +1,9 @@
-import { Leaf } from "lucide-react";
 import SidebarLink from "./SidebarLink";
 import SidebarSectionHeader from "./SidebarSectionHeader";
 import SidebarUserFooter from "./SidebarUserFooter";
 import { SidebarLinkData } from "@/types";
+import Image from "next/image";
+import voitaLogo from "@/assets/voita.png";
 
 const mainLinks: SidebarLinkData[] = [
   { label: "Overview", href: "/", icon: "grid" },
@@ -27,8 +28,12 @@ export default function Sidebar() {
   return (
     <aside className="w-56 shrink-0 h-screen sticky top-0 bg-voita-sidebar border-r border-voita-border flex flex-col px-3 py-5">
       <div className="flex items-center gap-2 px-2 mb-8">
-        <div className="w-8 h-8 rounded-full bg-voita-accent flex items-center justify-center">
-          <Leaf size={16} className="text-voita-bg" />
+        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+          <Image
+            src={voitaLogo}
+            alt="Voita"
+            className="w-10 h-10 object-contain"
+          />
         </div>
         <div className="leading-tight">
           <p className="text-white font-semibold text-sm">Voita</p>
