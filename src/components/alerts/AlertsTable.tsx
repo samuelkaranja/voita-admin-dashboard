@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { Alert } from "@/types";
 
 const STATUS_STYLES: Record<Alert["status"], string> = {
@@ -15,13 +15,24 @@ const PRIORITY_STYLES: Record<Alert["priority"], string> = {
   urgent: "text-red-400 font-semibold",
 };
 
-export default function AlertsTable({ alerts }: { alerts: Alert[] }) {
+interface AlertsTableProps {
+  alerts: Alert[];
+  onDelete: (id: string) => void;
+}
+
+export default function AlertsTable({ alerts, onDelete }: AlertsTableProps) {
   if (alerts.length === 0) {
     return (
       <div className="rounded-lg border border-voita-border py-12 text-center text-sm text-voita-text-muted">
         No alerts found
       </div>
     );
+  }
+
+  function handleDelete(id: string, title: string) {
+    if (window.confirm(`Delete "${title}"? This can't be undone.`)) {
+      onDelete(id);
+    }
   }
 
   return (
@@ -53,22 +64,28 @@ export default function AlertsTable({ alerts }: { alerts: Alert[] }) {
               <td className="px-4 py-3 text-voita-text-secondary capitalize">
                 {alert.targetType.replace("_", " ")}
               </td>
-              <td className={`px-4 py-3 capitalize ${PRIORITY_STYLES[alert.priority]}`}>
+              <td
+                className={`px-4 py-3 capitalize ${PRIORITY_STYLES[alert.priority]}`}
+              >
                 {alert.priority}
               </td>
               <td className="px-4 py-3">
-                <span className={`rounded-full px-2.5 py-1 text-xs font-medium uppercase ${STATUS_STYLES[alert.status]}`}>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-medium uppercase ${STATUS_STYLES[alert.status]}`}
+                >
                   {alert.status}
                 </span>
               </td>
               <td className="px-4 py-3 text-voita-text-muted">
-                {alert.status === "draft" ? "—" : `${alert.successCount}/${alert.recipientsCount}`}
+                {alert.status === "draft"
+                  ? "—"
+                  : `${alert.successCount}/${alert.recipientsCount}`}
               </td>
               <td className="px-4 py-3 text-voita-text-muted">
                 {new Date(alert.createdAt).toLocaleDateString()}
               </td>
               <td className="px-4 py-3">
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end gap-1.5">
                   <Link
                     href={`/alerts/${alert.id}`}
                     className="p-1.5 rounded-md text-voita-text-secondary hover:text-voita-accent hover:bg-voita-accent-dim/50 transition-colors"
@@ -76,6 +93,13 @@ export default function AlertsTable({ alerts }: { alerts: Alert[] }) {
                   >
                     <Eye size={16} />
                   </Link>
+                  <button
+                    onClick={() => handleDelete(alert.id, alert.title)}
+                    className="p-1.5 rounded-md text-voita-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    aria-label={`Delete ${alert.title}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </td>
             </tr>

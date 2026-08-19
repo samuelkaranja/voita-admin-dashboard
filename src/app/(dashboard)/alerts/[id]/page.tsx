@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PageHeader from "@/components/layout/PageHeader";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -10,11 +10,13 @@ import {
   sendDraftAlertThunk,
   clearSelectedAlert,
 } from "@/store/slices/alertsSlice";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { deleteAlertThunk } from "@/store/slices/alertsSlice";
 
 export default function AlertDetailPage() {
   const { id } = useParams<{ id: string }>();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const {
     selected: alert,
     status,
@@ -34,6 +36,19 @@ export default function AlertDetailPage() {
 
   if (status === "loading" || !alert) {
     return <p className="text-voita-text-muted text-sm">Loading alert...</p>;
+  }
+
+  const currentAlert = alert;
+
+  async function handleDelete() {
+    if (
+      !window.confirm(`Delete "${currentAlert.title}"? This can't be undone.`)
+    )
+      return;
+    const result = await dispatch(deleteAlertThunk(id));
+    if (deleteAlertThunk.fulfilled.match(result)) {
+      router.push("/alerts");
+    }
   }
 
   return (
@@ -91,15 +106,25 @@ export default function AlertDetailPage() {
         )}
       </div>
 
-      {alert.status === "draft" && (
+      <div className="flex items-center gap-3">
+        {alert.status === "draft" && (
+          <button
+            onClick={handleSend}
+            disabled={mutationStatus === "loading"}
+            className="rounded-lg bg-voita-accent px-5 py-2.5 text-sm font-semibold text-voita-bg hover:opacity-90 transition-opacity disabled:opacity-60"
+          >
+            {mutationStatus === "loading" ? "Sending..." : "Send Alert"}
+          </button>
+        )}
         <button
-          onClick={handleSend}
+          onClick={handleDelete}
           disabled={mutationStatus === "loading"}
-          className="self-start rounded-lg bg-voita-accent px-5 py-2.5 text-sm font-semibold text-voita-bg hover:opacity-90 transition-opacity disabled:opacity-60"
+          className="flex items-center gap-1.5 rounded-lg border border-red-500/40 px-5 py-2.5 text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-60"
         >
-          {mutationStatus === "loading" ? "Sending..." : "Send Alert"}
+          <Trash2 size={16} />
+          Delete Alert
         </button>
-      )}
+      </div>
     </div>
   );
 }

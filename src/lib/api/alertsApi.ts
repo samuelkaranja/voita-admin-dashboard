@@ -197,3 +197,9 @@ export async function updateAlert(
   // created_at, etc.) that the rest of the app relies on. The caller re-fetches
   // the canonical alert via fetchAlertById instead.
 }
+
+export async function deleteAlert(id: string): Promise<void> {
+  await apiClient.delete(`/admin/alerts/${id}`);
+  // Not parsing the response body — we don't need deleted_alert's contents,
+  // the caller already knows which id it deleted.
+}

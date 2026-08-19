@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { Alert } from "@/types";
 import * as api from "@/lib/api/alertsApi";
 import { extractErrorMessage } from "@/lib/apiClient";
+import axios from "axios";
 
 interface AlertSendFailure {
   message: string;
@@ -111,6 +112,25 @@ export const updateAlertThunk = createAsyncThunk(
   },
 );
 
+export const deleteAlertThunk = createAsyncThunk(
+  "alerts/delete",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await api.deleteAlert(id);
+      return id;
+    } catch (err) {
+      // Per the backend's own note: another admin may have already deleted
+      // this alert. Treat a 404 here as an effectively-successful outcome
+      // rather than surfacing an error — the end state the user wants
+      // (this alert gone from the list) is already true.
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        return id;
+      }
+      return rejectWithValue(extractErrorMessage(err));
+    }
+  },
+);
+
 const alertsSlice = createSlice({
   name: "alerts",
   initialState,
@@ -207,6 +227,17 @@ const alertsSlice = createSlice({
         state.mutationStatus = "failed";
         state.mutationError =
           (action.payload as string) ?? "Failed to update alert";
+      })
+
+      .addCase(deleteAlertThunk.fulfilled, (state, action) => {
+        state.items = state.items.filter((a) => a.id !== action.payload);
+        if (state.selected?.id === action.payload) {
+          state.selected = null;
+        }
+      })
+      .addCase(deleteAlertThunk.rejected, (state, action) => {
+        state.mutationError =
+          (action.payload as string) ?? "Failed to delete alert";
       });
   },
 });
